@@ -149,3 +149,24 @@ fn main() {
         run_sequentially(&args[1], bounds, upper_left, lower_right);
     }
 }
+
+#[test]
+fn test_parse_pair() {
+    assert_eq!(parse_pair::<u64>("     ", ','), None);
+    assert_eq!(parse_pair::<u64>("45*50", '*'), Some((45, 50)));
+}
+
+#[test]
+fn test_parse_complex() {
+    assert_eq!(parse_complex("1.25,-0.0625"), Some(Complex {re: 1.25, im: -0.0625}));
+    assert_eq!(parse_complex(",-0.0625"), None);
+}
+
+#[test]
+fn test_pixel_to_point() {
+    assert_eq!(pixel_to_point(
+                                (100, 200), (25, 175),
+                                Complex {re: -1.0, im: 1.0},
+                                Complex {re: 1.0, im: -1.0},
+                            ),  Complex {re: -0.5, im: -0.75});
+}
