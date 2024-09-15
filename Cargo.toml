@@ -1,0 +1,9 @@
+[package]
+name = "mandelbrot-set"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crossbeam = "0.8.4"
+image = "0.25.2"
+num = "0.4.3"
