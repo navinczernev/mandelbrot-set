@@ -1,6 +1,7 @@
 use std::str::FromStr;
 use std::fs::File;
 use std::env;
+use crossbeam;
 use num::Complex;
 use image::ImageEncoder;
 use image::error::ImageResult;
@@ -99,6 +100,35 @@ fn run_sequentially(filename: &str, bounds: (usize, usize), upper_left: Complex<
     write_image(filename, &pixels, bounds).expect("error writing PNG file");
 }
 
+fn run_in_parallel(filename: &str, bounds: (usize, usize), upper_left: Complex<f64>, lower_right: Complex<f64>) {
+    let (width, height) = bounds;
+
+    let mut pixels = vec![0; width * height];
+
+    let threads: usize = 8;
+    let rows_per_band = (height / threads) + 1;
+    {
+        let bands: Vec<&mut [u8]> = pixels.chunks_mut(rows_per_band * width).collect();
+        crossbeam::scope(|spanner| {
+            for (i, band) in bands.into_iter().enumerate() {
+                let top = rows_per_band * i;
+                let height = band.len() / width;
+                let band_bounds = (width, height);
+                let band_upper_left = pixel_to_point(bounds, (0usize, top), upper_left, lower_right);
+                let band_lower_right = pixel_to_point(bounds, (width, top + height), upper_left, lower_right);
+
+                spanner.spawn(
+                    move |_| {
+                        render(band, band_bounds, band_upper_left, band_lower_right);
+                    }
+                );
+            }
+        }).unwrap();
+    }
+
+    write_image(filename, &pixels, bounds).expect("error writing PNG file");
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -114,7 +144,7 @@ fn main() {
     let heuristics: bool = parse_bool(&args[5]).expect("error parsing <SEQUENTIAL:0|PARALLEL:1>");
 
     if heuristics {
-        run_sequentially(&args[1], bounds, upper_left, lower_right);
+        run_in_parallel(&args[1], bounds, upper_left, lower_right);
     } else {
         run_sequentially(&args[1], bounds, upper_left, lower_right);
     }
