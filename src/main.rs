@@ -133,7 +133,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 6 {
-        eprintln!("Usage: {} FILE PIXELS UPPERLEFT LOWERRIGHT <SEQUENTIAL:0|PARALLEL:1>", args[0]);
+        eprintln!("Usage: {} <OUTPUT-FILE-NAME> <PIXELS> <UPPERLEFT> <LOWERRIGHT> <SEQUENTIAL:0|PARALLEL:1>", args[0]);
         eprintln!("Example: {} mandel.png 1000x750 -1.20,0.35 -1,0.20 1", args[0]);
         std::process::exit(1);
     }
